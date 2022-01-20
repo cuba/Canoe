@@ -17,7 +17,6 @@
 		8C6306252728D2B8002038FE /* ExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C6306242728D2B8002038FE /* ExampleUITests.swift */; };
 		8C6306272728D2B8002038FE /* ExampleUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C6306262728D2B8002038FE /* ExampleUITestsLaunchTests.swift */; };
 		8C6306372728D6AB002038FE /* Canoe in Frameworks */ = {isa = PBXBuildFile; productRef = 8C6306362728D6AB002038FE /* Canoe */; };
-		8C63063A2729094E002038FE /* SimpleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C6306392729094E002038FE /* SimpleView.swift */; };
 		8C63063C27290997002038FE /* SimpleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C63063B27290997002038FE /* SimpleRow.swift */; };
 /* End PBXBuildFile section */
 
@@ -53,8 +52,8 @@
 		8C6306242728D2B8002038FE /* ExampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleUITests.swift; sourceTree = "<group>"; };
 		8C6306262728D2B8002038FE /* ExampleUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		8C6306342728D2C5002038FE /* Canoe */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Canoe; path = ..; sourceTree = "<group>"; };
-		8C6306392729094E002038FE /* SimpleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleView.swift; sourceTree = "<group>"; };
 		8C63063B27290997002038FE /* SimpleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleRow.swift; sourceTree = "<group>"; };
+		DAC7FEC5279927C200D6BAD7 /* Example.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Example.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,6 +107,7 @@
 		8C6306022728D2B6002038FE /* Example */ = {
 			isa = PBXGroup;
 			children = (
+				DAC7FEC5279927C200D6BAD7 /* Example.entitlements */,
 				8C6306382729093F002038FE /* Views */,
 				8C6306032728D2B6002038FE /* AppDelegate.swift */,
 				8C6306052728D2B6002038FE /* SceneDelegate.swift */,
@@ -155,7 +155,6 @@
 		8C6306382729093F002038FE /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				8C6306392729094E002038FE /* SimpleView.swift */,
 				8C63063B27290997002038FE /* SimpleRow.swift */,
 			);
 			path = Views;
@@ -295,7 +294,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8C63063A2729094E002038FE /* SimpleView.swift in Sources */,
 				8C6306082728D2B6002038FE /* ViewController.swift in Sources */,
 				8C6306042728D2B6002038FE /* AppDelegate.swift in Sources */,
 				8C6306062728D2B6002038FE /* SceneDelegate.swift in Sources */,
@@ -476,6 +474,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Example/Example.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 5P99QDD6WR;
@@ -493,6 +492,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jacobsikorski.Example;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -504,6 +504,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Example/Example.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 5P99QDD6WR;
@@ -521,6 +522,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jacobsikorski.Example;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

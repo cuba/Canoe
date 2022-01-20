@@ -147,7 +147,12 @@ extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
         let row = tableViewHelper.row(for: indexPath)
-        cell.contentConfiguration = row
+        var configuration = cell.defaultContentConfiguration()
+        configuration.text = row.type.rawValue
+        configuration.secondaryText = row.id.uuidString
+        configuration.secondaryTextProperties.color = .secondaryLabel
+        configuration.prefersSideBySideTextAndSecondaryText = true
+        cell.contentConfiguration = configuration
         return cell
     }
 }
