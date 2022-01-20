@@ -1,3 +1,10 @@
+[![Swift 5](https://img.shields.io/badge/swift-5-lightgrey.svg?style=for-the-badge)](https://swift.org)
+![iOS 10](https://img.shields.io/badge/iOS-10-lightgrey.svg?style=for-the-badge)
+[![SPM](https://img.shields.io/badge/SPM-compatible-green.svg?style=for-the-badge)](https://swift.org/package-manager)
+[![Carthage](https://img.shields.io/badge/carthage-compatible-green.svg?style=for-the-badge)](https://github.com/Carthage/Carthage)
+[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg?style=for-the-badge)](https://github.com/cuba/PiuPiu/blob/master/LICENSE)
+[![Build](https://img.shields.io/travis/com/cuba/Canoe/master.svg?style=for-the-badge)](https://app.travis-ci.com/github/cuba/Canoe)
+
 # Canoe
 
 Canoe
