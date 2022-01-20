@@ -3,7 +3,7 @@
 Canoe
 ============
 
-Canoe simplifies table view mangment by wrapping it arund a `TableViewHelper`. However Canoe doesn't force you to use custom delegates and data sources. Table view managment uses existing protocols you just dont need to manage index paths anymore.
+Canoe simplifies table view management by wrapping it around a `TableViewHelper`. However Canoe doesn't force you to use custom delegates and data sources. Table view management uses existing protocols you just don't need to manage index paths anymore.
 
 ## Installation
 
@@ -13,7 +13,7 @@ PiuPiu supports SPM. Not sure what else to say :)
 
 ## Usage
 
-### 1. Import canue on your UIViewController
+### 1. Import `Canoe` on your `UIViewController`
 
 ```swift
 import Canoe
@@ -43,7 +43,7 @@ All you need to do is define is a `TableViewHelperSection` which in turn needs t
 
 In this example we used a struct for both the section and row. Did we need to use a struct? No! We just decided to use a struct. It fit our needs better.
 
-### 3. Add `TableViewHelper` to our UIViewController
+### 3. Add `TableViewHelper` to our `UIViewController`
 
 ```swift
 class ViewController: UIViewController {
@@ -117,9 +117,9 @@ extension ViewController: UITableViewDelegate {
 }
 ```
 
-Most of what we do here is pretty straightforward: configure a cell, move cells, delete cells. In a simpe example, it's difficult how truly useful this is. 
-But even with these basic examples, `TableViewHelper` made it much easher and quicker to do these operations. 
-Imagine a much much much more complex screen with different row types and differnt types of interactions.
+Most of what we do here is pretty straightforward: configure a cell, move cells, delete cells. In a simple example, it's difficult how truly useful this is. 
+But even with these basic examples, `TableViewHelper` made it much easier and quicker to do these operations. 
+Imagine a much much much more complex screen with different row types and different types of interactions.
 
 ## Advanced example
 TODO
