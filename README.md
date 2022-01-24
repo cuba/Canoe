@@ -5,8 +5,6 @@
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg?style=for-the-badge)](https://github.com/cuba/PiuPiu/blob/master/LICENSE)
 [![Build](https://img.shields.io/travis/com/cuba/Canoe/master.svg?style=for-the-badge)](https://app.travis-ci.com/github/cuba/Canoe)
 
-# Canoe
-
 Canoe
 ============
 
