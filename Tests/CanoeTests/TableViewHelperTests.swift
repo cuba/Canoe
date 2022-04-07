@@ -274,7 +274,7 @@ final class TableViewHelperTests: XCTestCase {
         tableViewHelper.show(section: section)
         
         // When
-        tableViewHelper.insertRows(with: .automatic) { oldSection, oldRow in
+        tableViewHelper.insertRows(with: .automatic) { _, oldSection, oldRow in
             guard previousRows.contains(where: { oldRow.id == $0.id }) else {
                 return nil
             }

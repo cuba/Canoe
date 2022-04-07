@@ -96,9 +96,9 @@ class SectionsHelperTests: XCTestCase {
 
         // When
         let retrievedSections = sectionsHelper.sections(for: indexSet)
-        XCTAssertEqual(retrievedSections.count, 3)
 
         // Then
+        XCTAssertEqual(retrievedSections.count, 3)
         XCTAssertEqual(sections[0].id, retrievedSections[0].id)
         XCTAssertEqual(sections[2].id, retrievedSections[1].id)
         XCTAssertEqual(sections[5].id, retrievedSections[2].id)
@@ -121,6 +121,7 @@ class SectionsHelperTests: XCTestCase {
     }
 
     func testSectionIndexesWhere() {
+        // Given
         let indexSet = IndexSet([99, 1, 5])
         let sections = makeSections(count: 10, rowsCount: 10)
         sectionsHelper.set(sections: sections)
@@ -135,6 +136,7 @@ class SectionsHelperTests: XCTestCase {
     }
 
     func testFirstSectionIndexWhere() {
+        // Given
         let indexSet = IndexSet([99, 5, 1])
         let sections = makeSections(count: 10, rowsCount: 10)
         sectionsHelper.set(sections: sections)
@@ -149,6 +151,7 @@ class SectionsHelperTests: XCTestCase {
     }
 
     func testInsertSectionAtIndex() {
+        // Given
         let sections = makeSections(count: 10, rowsCount: 10)
         let section = makeSection(rowsCount: 5)
         sectionsHelper.set(sections: sections)
@@ -163,6 +166,7 @@ class SectionsHelperTests: XCTestCase {
     }
 
     func testInsertSectionsStartingAtIndex() {
+        // Given
         let sections = makeSections(count: 10, rowsCount: 10)
         let addedSections = makeSections(count: 5, rowsCount: 5)
         sectionsHelper.set(sections: sections)
@@ -182,6 +186,7 @@ class SectionsHelperTests: XCTestCase {
     }
 
     func testReplaceSectionAtIndex() {
+        // Given
         let sections = makeSections(count: 10, rowsCount: 10)
         let section = makeSection(rowsCount: 5)
         sectionsHelper.set(sections: sections)
@@ -196,6 +201,7 @@ class SectionsHelperTests: XCTestCase {
     }
 
     func testReplaceSectionsWhere() {
+        // Given
         let sections = makeSections(count: 10, rowsCount: 10)
         let section = makeSection(rowsCount: 5)
         sectionsHelper.set(sections: sections)
@@ -210,6 +216,190 @@ class SectionsHelperTests: XCTestCase {
         XCTAssertEqual(indexSet, IndexSet([5]))
         XCTAssertEqual(sectionsHelper.sections[5].id, section.id)
         XCTAssertEqual(sectionsHelper.sections[5].rows.count, 5)
+    }
+
+    func testRemoveSectionAtIndex() {
+        // Given
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        sectionsHelper.removeSection(at: 5)
+
+        // Then
+        XCTAssertEqual(sectionsHelper.sections[5].id, sections[6].id)
+        XCTAssertEqual(sectionsHelper.sections.count, 9)
+    }
+
+    func testRemoveSectionsInIndexSet() {
+        // Given
+        let indexSet = IndexSet([0, 2, 5, 99])
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        sectionsHelper.removeSections(in: indexSet)
+
+        // Then
+        XCTAssertEqual(sectionsHelper.sections.count, 7)
+        XCTAssertEqual(sectionsHelper.sections[0].id, sections[1].id)
+        XCTAssertEqual(sectionsHelper.sections[2].id, sections[4].id)
+        XCTAssertEqual(sectionsHelper.sections[5].id, sections[8].id)
+    }
+
+    func testRemoveSectionsWhere() {
+        // Given
+        let indexSet = IndexSet([0, 2, 5, 99])
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        sectionsHelper.removeSections { index, _ in
+            indexSet.contains(index)
+        }
+
+        // Then
+        XCTAssertEqual(sectionsHelper.sections.count, 7)
+        XCTAssertEqual(sectionsHelper.sections[0].id, sections[1].id)
+        XCTAssertEqual(sectionsHelper.sections[2].id, sections[4].id)
+        XCTAssertEqual(sectionsHelper.sections[5].id, sections[8].id)
+    }
+
+    func testRowForIndexPath() {
+        // Given
+        let indexPath = IndexPath(row: 5, section: 5)
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        let row = sectionsHelper.row(for: indexPath)
+
+        // Then
+        XCTAssertEqual(sections[5].rows[5].id, row.id)
+        XCTAssertEqual(sectionsHelper.sections[5].rows[5].id, row.id)
+    }
+
+    func testRowsForIndexPaths() {
+        // Given
+        let indexPaths = [
+            IndexPath(row: 9, section: 0), // out of bounds
+            IndexPath(row: 10, section: 0),
+            IndexPath(row: 0, section: 2),
+            IndexPath(row: 9, section: 5),
+            IndexPath(row: 8, section: 5),
+            IndexPath(row: 7, section: 5),
+            IndexPath(row: 7, section: 5) // duplicate
+        ]
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        let rows = sectionsHelper.rows(for: indexPaths)
+
+        // Then
+        XCTAssertEqual(sections[0].rows[9].id, rows[0].id)
+        XCTAssertEqual(sections[2].rows[0].id, rows[1].id)
+        XCTAssertEqual(sections[5].rows[7].id, rows[2].id)
+        XCTAssertEqual(sections[5].rows[8].id, rows[3].id)
+        XCTAssertEqual(sections[5].rows[9].id, rows[4].id)
+    }
+
+    func testRowsWhere() {
+        // Given
+        let indexPaths = [
+            IndexPath(row: 9, section: 0), // out of bounds
+            IndexPath(row: 10, section: 0),
+            IndexPath(row: 0, section: 2),
+            IndexPath(row: 9, section: 5),
+            IndexPath(row: 8, section: 5),
+            IndexPath(row: 7, section: 5),
+            IndexPath(row: 7, section: 5) // duplicate
+        ]
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        let rows = sectionsHelper.rows { indexPath, _, _ in
+            return indexPaths.contains(indexPath)
+        }
+
+        // Then
+        XCTAssertEqual(sections[0].rows[9].id, rows[0].id)
+        XCTAssertEqual(sections[2].rows[0].id, rows[1].id)
+        XCTAssertEqual(sections[5].rows[7].id, rows[2].id)
+        XCTAssertEqual(sections[5].rows[8].id, rows[3].id)
+        XCTAssertEqual(sections[5].rows[9].id, rows[4].id)
+    }
+
+    func testRowsInSectionWhere() {
+        // Given
+        let indexPaths = [
+            IndexPath(row: 9, section: 0),
+            IndexPath(row: 10, section: 0), // out of bounds
+            IndexPath(row: 0, section: 2),
+            IndexPath(row: 9, section: 5),
+            IndexPath(row: 8, section: 5),
+            IndexPath(row: 7, section: 5),
+            IndexPath(row: 7, section: 5) // duplicate
+        ]
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        let rows = sectionsHelper.rows(inSectionAt: 5) { indexPath, _ in
+            return indexPaths.contains(indexPath)
+        }
+
+        // Then
+        XCTAssertEqual(sections[5].rows[7].id, rows[0].id)
+        XCTAssertEqual(sections[5].rows[8].id, rows[1].id)
+        XCTAssertEqual(sections[5].rows[9].id, rows[2].id)
+    }
+
+    func testFirstRowWhere() {
+        // Given
+        let indexPaths = [
+            IndexPath(row: 10, section: 0), // out of bounds
+            IndexPath(row: 9, section: 0),
+            IndexPath(row: 0, section: 2),
+            IndexPath(row: 9, section: 5),
+            IndexPath(row: 8, section: 5),
+            IndexPath(row: 7, section: 5),
+            IndexPath(row: 7, section: 5) // duplicate
+        ]
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        let row = sectionsHelper.firstRow { indexPath, _, _ in
+            return indexPaths.contains(indexPath)
+        }
+
+        // Then
+        XCTAssertEqual(sections[0].rows[9].id, row?.id)
+    }
+
+    func testFirstRowInSectionAtWhere() {
+        // Given
+        let indexPaths = [
+            IndexPath(row: 10, section: 0), // out of bounds
+            IndexPath(row: 9, section: 0),
+            IndexPath(row: 0, section: 2),
+            IndexPath(row: 9, section: 5),
+            IndexPath(row: 8, section: 5),
+            IndexPath(row: 7, section: 5),
+            IndexPath(row: 7, section: 5) // duplicate
+        ]
+        let sections = makeSections(count: 10, rowsCount: 10)
+        sectionsHelper.set(sections: sections)
+
+        // When
+        let row = sectionsHelper.firstRow(inSectionAt: 5) { indexPath, _ in
+            return indexPaths.contains(indexPath)
+        }
+
+        // Then
+        XCTAssertEqual(sections[5].rows[7].id, row?.id)
     }
 
     // MARK: - Helper methods
