@@ -1,44 +1,39 @@
 import Foundation
 import UIKit
 
-public protocol TableViewHelperIdentifiable {
-    associatedtype ID: Hashable
-    var id: ID { get }
-}
-
-public protocol TableViewHelperSection {
-    associatedtype Row
-    var rows: [Row] { get set }
-}
-
 /// A helper class that syncronizes with the table view sections and rows
-public class TableViewHelper<Section: TableViewHelperSection> {
-    public private(set) var sections: [Section] = []
+public class TableViewHelper<Section: SectionsHelperSection> {
     public let tableView: UITableView
+    public var sectionsHelper: SectionsHelper<Section>
+
+    public var sections: [Section] {
+        return sectionsHelper.sections
+    }
     
     // MARK: - Initializers
 
     public init(frame: CGRect, style: UITableView.Style, sections: [Section] = []) {
         self.tableView = UITableView(frame: frame, style: style)
-        self.sections = sections
+        self.sectionsHelper = SectionsHelper(sections: sections)
     }
     
     public init(tableView: UITableView, sections: [Section] = []) {
         self.tableView = tableView
-        self.sections = sections
+        self.sectionsHelper = SectionsHelper(sections: sections)
     }
     
     // MARK: - Show
     
     /// Reload the table view with the given sections
     public func show(sections: [Section]) {
-        self.sections = sections
+        sectionsHelper.set(sections: sections)
         tableView.reloadData()
     }
     
     /// Reload the table view with the given section
     public func show(section: Section) {
-        show(sections: [section])
+        sectionsHelper.set(sections: [section])
+        tableView.reloadData()
     }
     
     // MARK: - Helpers
@@ -54,23 +49,17 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     
     /// Return the section for the given index path, ignoring the given row
     public func section(for indexPath: IndexPath) -> Section {
-        return sections[indexPath.section]
+        return sectionsHelper.section(for: indexPath)
     }
 
     /// Return the first section identified by the callback
-    public func firstSection(where callback: (Section) -> Bool) -> Section? {
-        guard let sectionIndex = firstSectionIndex(where: callback) else { return nil }
-        return sections[sectionIndex]
+    public func firstSection(where callback: (Int, Section) -> Bool) -> Section? {
+        return sectionsHelper.firstSection(where: callback)
     }
 
     /// Return the first section index identified by the callback
-    public func firstSectionIndex(where callback: (Section) -> Bool) -> Int? {
-        for (index, section) in sections.enumerated() {
-            guard callback(section) else { continue }
-            return index
-        }
-
-        return nil
+    public func firstSectionIndex(where callback: (Int, Section) -> Bool) -> Int? {
+        return sectionsHelper.firstSectionIndex(where: callback)
     }
     
     /// Insert a single section to the table view at the given index
@@ -80,37 +69,19 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     
     /// Insert a single section to the table view at the given index
     public func insert(sections: [Section], startingAt startIndex: Int, with animation: UITableView.RowAnimation = .automatic) {
-        var indexSet = IndexSet()
-        var currentIndex = startIndex
-        
-        for section in sections {
-            self.sections.insert(section, at: currentIndex)
-            indexSet.insert(currentIndex)
-            currentIndex += 1
-        }
-        
+        let indexSet = sectionsHelper.insert(sections: sections, startingAt: startIndex)
         tableView.insertSections(indexSet, with: animation)
     }
     
     /// Replace a section at a specific index
     public func replace(section: Section, at index: Int, with animation: UITableView.RowAnimation = .automatic) {
-        var indexSet = IndexSet()
-        indexSet.insert(index)
-        sections[index] = section
+        let indexSet = sectionsHelper.replace(section: section, at: index)
         tableView.reloadSections(indexSet, with: animation)
     }
     
     /// Replace all sections given by the callback
-    public func replaceSections(with animation: UITableView.RowAnimation = .automatic, where callback: (Section) -> Section?) {
-        var indexSet = IndexSet()
-        
-        for (index, section) in sections.enumerated() {
-            if let newSection = callback(section) {
-                sections[index] = newSection
-                indexSet.insert(index)
-            }
-        }
-        
+    public func replaceSections(with animation: UITableView.RowAnimation = .automatic, where callback: (Int, Section) -> Section?) {
+        let indexSet = sectionsHelper.replaceSections(where: callback)
         tableView.reloadSections(indexSet, with: animation)
     }
     
@@ -122,30 +93,15 @@ public class TableViewHelper<Section: TableViewHelperSection> {
 
     /// Remove section at the given indexSet
     public func removeSections(in indexSet: IndexSet, with animation: UITableView.RowAnimation = .automatic) {
-        sections = sections.enumerated().compactMap { (offset, section) -> Section? in
-            guard !indexSet.contains(offset) else { return nil }
-            return section
-        }
-
+        sectionsHelper.removeSections(in: indexSet)
         tableView.deleteSections(indexSet, with: animation)
     }
     
     /// Remove all rows identified by the callback
     /// - Parameters:
     ///   - callback:Returns true if the row should be removed
-    public func removeSections(with animation: UITableView.RowAnimation = .automatic, where callback: (Section) -> Bool) {
-        var indexSet = IndexSet()
-        var newSections: [Section] = []
-        
-        for (index, section) in sections.enumerated() {
-            if callback(section) {
-                indexSet.insert(index)
-            } else {
-                newSections.append(section)
-            }
-        }
-        
-        sections = newSections
+    public func removeSections(with animation: UITableView.RowAnimation = .automatic, where callback: (Int, Section) -> Bool) {
+        let indexSet = sectionsHelper.removeSections(where: callback)
         tableView.deleteSections(indexSet, with: animation)
     }
     
@@ -153,40 +109,22 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     
     /// Return the row for the given index path
     public func row(for indexPath: IndexPath) -> Section.Row {
-        return sections[indexPath.section].rows[indexPath.row]
+        return sectionsHelper.row(for: indexPath)
     }
 
     /// Move a row from one index path to another
     public func moveRow(at sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let sourceRow = sections[sourceIndexPath.section].rows.remove(at: sourceIndexPath.row)
-        sections[destinationIndexPath.section].rows.insert(sourceRow, at: destinationIndexPath.row)
+        sectionsHelper.moveRow(at: sourceIndexPath, to: destinationIndexPath)
     }
 
     /// Return the row identified by the callback
-    public func firstRow(where callback: (Section, Section.Row) -> Bool) -> Section.Row? {
-        for (index, section) in sections.enumerated() {
-            let row = firstRow(inSectionAt: index, where: { row -> Bool in
-                return callback(section, row)
-            })
-
-            if let row = row {
-                return row
-            } else {
-                continue
-            }
-        }
-
-        return nil
+    public func firstRow(where callback: (IndexPath, Section, Section.Row) -> Bool) -> Section.Row? {
+        return sectionsHelper.firstRow(where: callback)
     }
 
     /// Return the row identified by the callback
-    public func firstRow(inSectionAt section: Int, where callback: (Section.Row) -> Bool) -> Section.Row? {
-        for row in sections[section].rows {
-            guard callback(row) else { continue }
-            return row
-        }
-
-        return nil
+    public func firstRow(inSectionAt section: Int, where callback: (IndexPath, Section.Row) -> Bool) -> Section.Row? {
+        return sectionsHelper.firstRow(inSectionAt: section, where: callback)
     }
     
     /// Insert rows starting at the given index path
@@ -194,16 +132,7 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     ///   - rows: The rows to insert
     ///   - startIndexPath: The Index path to start inserting the rows into
     public func insert(rows: [Section.Row], startingAt startIndexPath: IndexPath, with animation: UITableView.RowAnimation = .automatic) {
-        var rowIndex = startIndexPath.row
-        var indexPaths: [IndexPath] = []
-        
-        for row in rows {
-            let indexPath = IndexPath(row: rowIndex, section: startIndexPath.section)
-            indexPaths.append(indexPath)
-            sections[indexPath.section].rows.insert(row, at: indexPath.row)
-            rowIndex += 1
-        }
-        
+        let indexPaths = sectionsHelper.insert(rows: rows, startingAt: startIndexPath)
         tableView.insertRows(at: indexPaths, with: animation)
     }
     
@@ -212,8 +141,8 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     ///   - rows: The rows to insert
     ///   - section: The section index to append the rows into
     public func append(rows: [Section.Row], toSectionAt section: Int, with animation: UITableView.RowAnimation = .automatic) {
-        let indexPath = IndexPath(row: sections[section].rows.count, section: section)
-        insert(rows: rows, startingAt: indexPath, with: animation)
+        let indexPaths = sectionsHelper.append(rows: rows, toSectionAt: section)
+        tableView.insertRows(at: indexPaths, with: animation)
     }
     
     /// Insert a row into the given index path
@@ -228,36 +157,7 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     /// - Parameters:
     ///   - callback: The search callback that provides the rows to insert before and after the current row
     public func insertRows(with animation: UITableView.RowAnimation = .automatic, where callback: (Section, Section.Row) -> (before: [Section.Row], after: [Section.Row])?) {
-        var indexPaths: [IndexPath] = []
-        
-        for (sectionIndex, section) in sections.enumerated() {
-            var newRows: [Section.Row] = []
-            for oldRow in section.rows {
-                let result = callback(section, oldRow)
-                
-                // Insert before rows
-                for row in result?.before ?? [] {
-                    let rowIndex = newRows.count
-                    newRows.append(row)
-                    let indexPath = IndexPath(row: rowIndex, section: sectionIndex)
-                    indexPaths.append(indexPath)
-                }
-                
-                // Put back existing row
-                newRows.append(oldRow)
-                
-                // Insert after rows
-                for row in result?.after ?? [] {
-                    let rowIndex = newRows.count
-                    newRows.append(row)
-                    let indexPath = IndexPath(row: rowIndex, section: sectionIndex)
-                    indexPaths.append(indexPath)
-                }
-            }
-            
-            sections[sectionIndex].rows = newRows
-        }
-        
+        let indexPaths = sectionsHelper.insertRows(where: callback)
         tableView.insertRows(at: indexPaths, with: animation)
     }
     
@@ -267,7 +167,7 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     ///   - indexPath: The index path of the row
     ///   - reloadCell: Specify if the cell should be reloaded with this new data
     public func replace(row: Section.Row, at indexPath: IndexPath, with animation: UITableView.RowAnimation = .automatic, reloadCell: Bool) {
-        sections[indexPath.section].rows[indexPath.row] = row
+        sectionsHelper.replace(row: row, at: indexPath)
         guard reloadCell else { return }
         tableView.reloadRows(at: [indexPath], with: animation)
     }
@@ -275,18 +175,8 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     /// Update all rows identified by the callback
     /// - Parameters:
     ///   - callback:Returns a new row when it needs to be replaced.
-    public func replaceRows(with animation: UITableView.RowAnimation = .automatic, where callback: (Section, Section.Row) -> Section.Row?) {
-        var indexPaths: [IndexPath] = []
-        
-        for (sectionIndex, section) in sections.enumerated() {
-            for (rowIndex, row) in section.rows.enumerated() {
-                if let newRow = callback(section, row) {
-                    indexPaths.append(IndexPath(row: rowIndex, section: sectionIndex))
-                    sections[sectionIndex].rows[rowIndex] = newRow
-                }
-            }
-        }
-        
+    public func replaceRows(with animation: UITableView.RowAnimation = .automatic, where callback: (IndexPath, Section, Section.Row) -> Section.Row?) {
+        let indexPaths = sectionsHelper.replaceRows(where: callback)
         tableView.reloadRows(at: indexPaths, with: animation)
     }
     
@@ -297,18 +187,7 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     
     /// Remove a rows at the given indexPaths
     public func removeRows(at indexPaths: [IndexPath], with animation: UITableView.RowAnimation = .automatic) {
-        for (sectionIndex, section) in sections.enumerated() {
-            var newRows: [Section.Row] = []
-            
-            for (rowIndex, row) in section.rows.enumerated() {
-                if !indexPaths.contains(where: { $0.row == rowIndex && $0.section == sectionIndex}) {
-                    newRows.append(row)
-                }
-                
-                sections[sectionIndex].rows = newRows
-            }
-        }
-        
+        sectionsHelper.removeRows(at: indexPaths)
         tableView.deleteRows(at: indexPaths, with: animation)
     }
     
@@ -317,12 +196,8 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     ///   - animation: The animation to use to perform the table view updated. Default is `.automatic`
     ///   - section: The section index to remove the rows from
     ///   - callback:Returns true if the row should be removed
-    public func removeRows(with animation: UITableView.RowAnimation = .automatic, inSection section: Int, where callback: (Section.Row) -> Bool) {
-        let indexPaths = sections[section].rows.enumerated().compactMap { index, row -> IndexPath? in
-            guard callback(row) else { return nil }
-            return IndexPath(row: index, section: section)
-        }
-        
+    public func removeRows(with animation: UITableView.RowAnimation = .automatic, inSection section: Int, where callback: (IndexPath, Section.Row) -> Bool) {
+        let indexPaths = sectionsHelper.removeRows(inSectionAt: section, where: callback)
         removeRows(at: indexPaths, with: animation)
     }
     
@@ -338,18 +213,7 @@ public class TableViewHelper<Section: TableViewHelperSection> {
     
     /// Get the index path for the given callback. Nil is return if the cell doesn't exist in the table view.
     public func indexPaths(where callback: (IndexPath, Section, Section.Row) -> Bool) -> [IndexPath] {
-        var results: [IndexPath] = []
-        
-        for (sectionIndex, section) in sections.enumerated() {
-            for (rowIndex, row) in section.rows.enumerated() {
-                if callback(IndexPath(row: rowIndex, section: sectionIndex), section, row) {
-                    let indexPath = IndexPath(row: rowIndex, section: sectionIndex)
-                    results.append(indexPath)
-                }
-            }
-        }
-        
-        return results
+        return sectionsHelper.indexPaths(where: callback)
     }
     
     /// Return the row and index path of the cell. Nil is return if the cell doesn't exist in the table view.
@@ -366,10 +230,10 @@ public class TableViewHelper<Section: TableViewHelperSection> {
 
 // MARK: - Identifiable Section
 
-extension TableViewHelper where Section: TableViewHelperIdentifiable {
+extension TableViewHelper where Section: SectionsHelperIdentifiable {
     /// Return the index of a section given by its id if one exists
     public func index(for sectionId: Section.ID) -> Int? {
-        return sections.firstIndex(where: { $0.id == sectionId })
+        return sectionsHelper.firstSectionIndex(where: { $1.id == sectionId })
     }
     
     /// Return the index of a section if one exists
@@ -379,7 +243,7 @@ extension TableViewHelper where Section: TableViewHelperIdentifiable {
     
     /// Replace all the sections represented by their ids with the given sections. Sections that are not found are ignored
     public func replace(sections: [Section], with animation: UITableView.RowAnimation = .automatic) {
-        replaceSections(with: animation) { oldSection in
+        replaceSections(with: animation) { index, oldSection in
             return sections.first(where: { $0.id == oldSection.id })
         }
     }
@@ -391,7 +255,7 @@ extension TableViewHelper where Section: TableViewHelperIdentifiable {
     
     /// Remove all sections by the given section ids
     func remove(sectionIds: Set<Section.ID>, with animation: UITableView.RowAnimation = .automatic) {
-        removeSections(with: animation) { oldSection in
+        removeSections(with: animation) { index, oldSection in
             return sectionIds.contains(oldSection.id)
         }
     }
@@ -410,10 +274,12 @@ extension TableViewHelper where Section: TableViewHelperIdentifiable {
 
 // MARK: - Identifiable Row
 
-extension TableViewHelper where Section.Row: TableViewHelperIdentifiable {
+extension TableViewHelper where Section.Row: SectionsHelperIdentifiable {
     /// Return the index of a row given by its id if one exists
-    public func index(for rowId: Section.Row.ID, inSectionAt section: Int) -> Int? {
-        return sections[section].rows.firstIndex(where: { $0.id == rowId })
+    public func index(for rowId: Section.Row.ID, inSectionAt sectionIndex: Int) -> Int? {
+        return sectionsHelper.indexPaths(inSectionAt: sectionIndex, where: { _, row in
+            return row.id == rowId
+        }).first?.row
     }
     
     /// Return the index of a row if one exists
@@ -422,7 +288,7 @@ extension TableViewHelper where Section.Row: TableViewHelperIdentifiable {
     }
     
     public func replace(rows: [Section.Row], with animation: UITableView.RowAnimation = .automatic) {
-        replaceRows(with: animation) { _, oldRow in
+        replaceRows(with: animation) { _, _, oldRow in
             return rows.first(where: { $0.id == oldRow.id })
         }
     }
@@ -436,21 +302,21 @@ extension TableViewHelper where Section.Row: TableViewHelperIdentifiable {
     /// Ensure the rows match the given rows for given section index
     public func ensure(rows: [Section.Row], inSectionAt sectionIndex: Int) {
         // 1. Remove rows that are not in the list
-        removeRows(inSection: sectionIndex) { oldRow in
+        removeRows(inSection: sectionIndex) { _, oldRow in
             !rows.contains(where: { $0.id == oldRow.id })
         }
         
         var rows = rows
         var index = 0
         
-        // 3. Add missing rows (A) and move misplaced rows (B)
+        // 2. Add missing rows (A) and move misplaced rows (B)
         // Since we removed all non-wanted rows
         // our rows in the table view have to be less than or equal to the given sections
         // So we can just iterate through the given rows as a source of truth
         while !rows.isEmpty {
             let row = rows.removeFirst()
             
-            // 3A. Remove the row if it's in the wrong place
+            // 2A. Remove the row if it's in the wrong place
             // We will add them back later
             if let existingIndex = self.index(for: row, inSectionAt: sectionIndex), existingIndex != index {
                 // TODO: @JS move the row instead of removing it?
@@ -458,7 +324,7 @@ extension TableViewHelper where Section.Row: TableViewHelperIdentifiable {
                 removeRow(at: indexPath, with: .automatic)
             }
             
-            // 3B. Add missing rows
+            // 2B. Add missing rows
             // Add this row and advance and add all next missing rows
             // The advance is an optimization not a requirement
             guard let _ = self.index(for: row, inSectionAt: sectionIndex) else {
@@ -480,7 +346,7 @@ extension TableViewHelper where Section.Row: TableViewHelperIdentifiable {
     }
 }
 
-extension TableViewHelper where Section: TableViewHelperIdentifiable, Section.Row: TableViewHelperIdentifiable {
+extension TableViewHelper where Section: SectionsHelperIdentifiable, Section.Row: SectionsHelperIdentifiable {
     /// Return the index of a row if one exists
     public func index(for row: Section.Row, inSectionId sectionId: Section.ID) -> Int? {
         guard let sectionIndex = index(for: sectionId) else { return nil }
@@ -490,11 +356,11 @@ extension TableViewHelper where Section: TableViewHelperIdentifiable, Section.Ro
     /// Ensure the sections match the given sections
     public func ensure(sections: [Section]) {
         // 1. Remove sections that are not in the list
-        removeSections(with: .automatic) { oldSection in
+        removeSections(with: .automatic) { index, oldSection in
             !sections.contains(where: { $0.id == oldSection.id })
         }
         
-        // 1. Remove rows that are not in the list
+        // 2. Remove rows that are not in the list
         removeRows(with: .automatic) { _, oldSection, oldRow in
             guard let newSection = sections.first(where: { $0.id == oldSection.id }) else {
                 assertionFailure("Impossible because we removed sections that shouldn't be here")
@@ -544,7 +410,7 @@ extension TableViewHelper where Section: TableViewHelperIdentifiable, Section.Ro
     
     /// Ensure the rows match the given rows for the sectionId
     public func ensure(rows: [Section.Row], at sectionId: Section.ID) {
-        guard let sectionIndex = sections.firstIndex(where: { $0.id == sectionId }) else {
+        guard let sectionIndex = firstSectionIndex(where: { $1.id == sectionId}) else {
             // This section id doesn't exist
             return
         }

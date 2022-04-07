@@ -3,12 +3,12 @@ import UIKit
 @testable import Canoe
 
 final class TableViewHelperTests: XCTestCase {
-    struct Row: TableViewHelperIdentifiable {
+    struct Row: SectionsHelperIdentifiable {
         let id: UUID
         let uuid = UUID()
     }
     
-    struct Section: TableViewHelperSection, TableViewHelperIdentifiable {
+    struct Section: SectionsHelperSection, SectionsHelperIdentifiable {
         let id: UUID
         var rows: [Row]
     }
@@ -121,7 +121,7 @@ final class TableViewHelperTests: XCTestCase {
         var newSections: [Section] = []
         
         // When
-        tableViewHelper.replaceSections { oldSection in
+        tableViewHelper.replaceSections { _, oldSection in
             guard previousSections.contains(where: { oldSection.id == $0.id }) else { return nil }
             let section = makeSection(rowsCount: 5)
             newSections.append(section)
@@ -177,7 +177,7 @@ final class TableViewHelperTests: XCTestCase {
         tableViewHelper.show(sections: sections)
         
         // When
-        tableViewHelper.removeSections(with: .automatic) { oldSection in
+        tableViewHelper.removeSections(with: .automatic) { _, oldSection in
             return previousSections.contains(where: { oldSection.id == $0.id })
         }
         
@@ -343,7 +343,7 @@ final class TableViewHelperTests: XCTestCase {
         var newRows: [Row] = []
         
         // When
-        tableViewHelper.replaceRows(with: .automatic) { oldSection, oldRow in
+        tableViewHelper.replaceRows(with: .automatic) { _, oldSection, oldRow in
             guard previousRows.contains(where: { oldRow.id == $0.id }) else { return nil }
             let row = makeRow()
             newRows.append(row)
@@ -412,7 +412,7 @@ final class TableViewHelperTests: XCTestCase {
         tableViewHelper.show(section: section)
         
         // When
-        tableViewHelper.removeRows(with: .automatic) { _, oldRow in
+        tableViewHelper.removeRows(with: .automatic) { _, _, oldRow in
             return previousRows.contains(where: { oldRow.id == $0.id })
         }
         

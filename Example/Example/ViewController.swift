@@ -101,12 +101,14 @@ class ViewController: UIViewController {
         actionSheet.addAction(UIAlertAction(title: "Smart reset", style: .destructive, handler: { _ in
             let sections = self.template.map { sectionTemplate -> Section in
                 // Attempt to return existing section for the section type
-                let oldSectionIndex = self.tableViewHelper.firstSectionIndex(where: { $0.type == sectionTemplate.sectionType })
+                let oldSectionIndex = self.tableViewHelper.firstSectionIndex(where: { _, section in
+                    section.type == sectionTemplate.sectionType
+                })
 
                 if let oldSectionIndex = oldSectionIndex {
                     // Attempt to get existing rows for the row type and section index
                     let rows = sectionTemplate.rowTypes.map { rowType -> SimpleRow in
-                        let oldRow = self.tableViewHelper.firstRow(inSectionAt: oldSectionIndex, where: { oldRow in
+                        let oldRow = self.tableViewHelper.firstRow(inSectionAt: oldSectionIndex, where: { _, oldRow in
                             oldRow.type == rowType
                         })
 
@@ -206,6 +208,11 @@ extension ViewController: UITableViewDelegate {
 
         removeRowsBelowAction.isEnabled = indexPath.row < section.rows.count - 1
         actionSheet.addAction(removeRowsBelowAction)
+
+        // Remove all rows of same type
+        actionSheet.addAction(UIAlertAction(title: "Remove section", style: .destructive, handler: { [weak self] _ in
+            self?.tableViewHelper.removeSection(at: indexPath.section)
+        }))
 
         // Cancel button
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
