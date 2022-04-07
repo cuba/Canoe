@@ -298,13 +298,14 @@ public struct SectionsHelper<Section: SectionsHelperSection> {
     /// - Parameters:
     ///   - callback: The search callback that provides the rows to insert before and after the current row
     @discardableResult
-    public mutating func insertRows(where callback: (Section, Section.Row) -> (before: [Section.Row], after: [Section.Row])?) -> [IndexPath] {
+    public mutating func insertRows(where callback: (IndexPath, Section, Section.Row) -> (before: [Section.Row], after: [Section.Row])?) -> [IndexPath] {
         var indexPaths: [IndexPath] = []
 
         for (sectionIndex, section) in sections.enumerated() {
             var newRows: [Section.Row] = []
-            for oldRow in section.rows {
-                let result = callback(section, oldRow)
+            for (rowIndex, oldRow) in section.rows.enumerated() {
+                let indexPath = IndexPath(row: rowIndex, section: sectionIndex)
+                let result = callback(indexPath, section, oldRow)
 
                 // Insert before rows
                 for row in result?.before ?? [] {

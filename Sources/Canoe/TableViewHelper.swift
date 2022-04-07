@@ -156,7 +156,7 @@ public class TableViewHelper<Section: SectionsHelperSection> {
     /// Insert rows before and after the row given within the callback.
     /// - Parameters:
     ///   - callback: The search callback that provides the rows to insert before and after the current row
-    public func insertRows(with animation: UITableView.RowAnimation = .automatic, where callback: (Section, Section.Row) -> (before: [Section.Row], after: [Section.Row])?) {
+    public func insertRows(with animation: UITableView.RowAnimation = .automatic, where callback: (IndexPath, Section, Section.Row) -> (before: [Section.Row], after: [Section.Row])?) {
         let indexPaths = sectionsHelper.insertRows(where: callback)
         tableView.insertRows(at: indexPaths, with: animation)
     }
